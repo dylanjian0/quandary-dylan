@@ -102,17 +102,28 @@ public class Interpreter {
     }
 
     Object executeRoot(Program astRoot, long arg) {
-        return evaluate(astRoot.getExpr());
+        return execute(astRoot.getStmt());
+    }
+
+    Object execute(Stmt stmt) {
+        if (stmt instanceof ReturnStmt) {
+            return evaluate(((ReturnStmt)stmt).getExpr());
+        } else {
+            throw new RuntimeException("Unhandled Stmt type");
+        }
     }
 
     Object evaluate(Expr expr) {
         if (expr instanceof ConstExpr) {
             return ((ConstExpr)expr).getValue();
+        } else if (expr instanceof UnaryMinusExpr) {
+            return -(Long)evaluate(((UnaryMinusExpr)expr).getExpr());
         } else if (expr instanceof BinaryExpr) {
             BinaryExpr binaryExpr = (BinaryExpr)expr;
             switch (binaryExpr.getOperator()) {
                 case BinaryExpr.PLUS: return (Long)evaluate(binaryExpr.getLeftExpr()) + (Long)evaluate(binaryExpr.getRightExpr());
                 case BinaryExpr.MINUS: return (Long)evaluate(binaryExpr.getLeftExpr()) - (Long)evaluate(binaryExpr.getRightExpr());
+                case BinaryExpr.TIMES: return (Long)evaluate(binaryExpr.getLeftExpr()) * (Long)evaluate(binaryExpr.getRightExpr());
                 default: throw new RuntimeException("Unhandled operator");
             }
         } else {
